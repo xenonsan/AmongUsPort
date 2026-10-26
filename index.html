@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
-  <title>Among Us — Crew Launch</title>
+  <title>Among Us</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <style>
     :root { color-scheme: dark; --red: #ef4653; --red-hot: #ff6670; --cyan: #70e8ed; --text: #f5f7fb; --muted: #aab2c2; --panel: rgba(8, 12, 20, .88); }
@@ -255,7 +255,72 @@
       .folder-hint { margin-top: 7px; }
     }
 
-  </style>
+  
+    /* Final monochrome, text-minimal layout */
+    :root { color-scheme: dark; --lime: #fff; }
+    #mission-screen { padding: 0; overflow: hidden; }
+    .topbar, .bottomline { display: none !important; }
+    .center-stage {
+      position: absolute; z-index: 2; top: 50%; left: clamp(24px, 7vw, 104px);
+      display: block; width: min(390px, calc(100vw - 48px)); padding: 0; margin: 0;
+      transform: translateY(-50%);
+    }
+    .launch-card, .loading-card {
+      display: block; width: 100%; max-width: none; margin: 0; padding: 0;
+      border: 0; border-radius: 0; background: transparent; box-shadow: none;
+      backdrop-filter: none; -webkit-backdrop-filter: none; overflow: visible; animation: none;
+    }
+    .launch-card::after, .loading-card::after, .launch-card .eyebrow, .launch-card h1,
+    .launch-card .lead, .folder-hint, .loading-card .eyebrow, .loader-orbit,
+    #unity-loading-status, .progress-meta { display: none !important; }
+    .choice-list { display: flex; flex-direction: column; gap: 0; width: min(300px, 100%); margin: 0; }
+    .choice {
+      display: block; min-height: 0; width: 100%; padding: 13px 15px; text-align: left;
+      color: #fff; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.52);
+      border-radius: 0; box-shadow: none; font: 500 14px/1.3 Inter, ui-sans-serif, system-ui, sans-serif;
+      transition: background .15s ease, color .15s ease;
+    }
+    .choice + .choice { border-top: 0; }
+    .choice:hover, .choice.primary, .choice.primary:hover {
+      color: #000; background: #fff; border-color: #fff; box-shadow: none; transform: none;
+    }
+    .choice:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    .choice:disabled { color: #888; background: #111; border-color: #777; opacity: 1; }
+    .remember-choice {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 17px;
+      color: rgba(255,255,255,.9); font-size: 11px; line-height: 1.4; cursor: pointer;
+      text-shadow: 0 1px 8px #000;
+    }
+    #remember-launch { width: 13px; height: 13px; margin: 0; accent-color: #fff; cursor: pointer; }
+    .loading-card { display: none; }
+    .loading-heading { display: block; margin: 0 0 16px; }
+    .loading-heading h2 {
+      margin: 0; color: #fff; font-size: clamp(23px, 2.8vw, 30px); font-weight: 600;
+      letter-spacing: -.035em; line-height: 1.25; text-shadow: 0 2px 14px rgba(0,0,0,.7);
+    }
+    #unity-progress-bar-empty {
+      display: block; width: min(360px, calc(100vw - 48px)); height: 3px; margin: 0;
+      border-radius: 0; background: rgba(255,255,255,.28); box-shadow: none; overflow: hidden;
+    }
+    #unity-progress-bar-full { height: 100%; border-radius: 0; background: #fff; box-shadow: none; transition: width .18s linear; }
+    #load-error {
+      max-width: 360px; margin-top: 18px; padding: 10px 0; border: 0;
+      border-top: 1px solid rgba(255,255,255,.65); border-radius: 0;
+      background: transparent; color: #fff; font-size: 12px; line-height: 1.6; white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    #return-start {
+      margin-top: 12px; padding: 9px 13px; border: 1px solid rgba(255,255,255,.65);
+      border-radius: 0; background: #fff; color: #000; cursor: pointer;
+      font: 500 12px/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+    #unity-warning { left: 24px; right: 24px; top: 20px; }
+    @media (max-width: 600px) {
+      #mission-screen { background-position: 58% center; }
+      .center-stage { left: 24px; width: calc(100vw - 48px); }
+      .choice-list { width: min(300px, 100%); }
+    }
+</style>
 </head>
 <body>
   <div id="unity-container" class="unity-desktop">
@@ -264,44 +329,23 @@
   </div>
 
   <main id="mission-screen" aria-label="Among Us game launcher">
-    <header class="topbar">
-      <div class="brand-mark">
-        <span class="brand-emblem" aria-hidden="true"></span>
-        <div><span class="brand-title">AMONG US</span><span class="brand-subtitle">CREWMATE SYSTEMS / WEBGL</span></div>
-      </div>
-      <div class="top-meta"><span class="signal-dot"></span><span id="connection-chip">MISSION CONTROL</span><span class="build-tag">BUILD 2026.6.5</span></div>
-    </header>
-
     <div class="center-stage">
-      <section id="launch-options" class="launch-card" aria-labelledby="launch-title">
-        <div class="eyebrow"><span class="eyebrow-mark"></span> AMONG US</div>
-        <h1 id="launch-title">起動方法を選択</h1>
-        <p class="lead">保存済みのゲームデータを使うか、通常起動するか選んでください。</p>
+      <section id="launch-options" class="launch-card" aria-label="起動方法">
         <div class="choice-list">
-          <button class="choice primary" id="choose-local" type="button">
-            <span class="choice-top"><span class="choice-icon" aria-hidden="true">▣</span> ローカルフォルダを選択</span>
-            <small>保存済みのゲームデータを読み込みます。通信量を抑えたいときに。</small>
-          </button>
-          <button class="choice" id="choose-network" type="button">
-            <span class="choice-top"><span class="choice-icon" aria-hidden="true">↗</span> 通常起動</span>
-            <small>いつもどおり、配信元からゲームデータを読み込みます。</small>
-          </button>
+          <button class="choice primary" id="choose-local" type="button">ローカルフォルダ</button>
+          <button class="choice" id="choose-network" type="button">通常起動</button>
         </div>
-        <p class="folder-hint">ローカルフォルダには <code>Build</code> と <code>StreamingAssets</code> が必要です。元のフォルダ構成と分割ファイル名をそのまま保ってください。ローカル読み込みは任意です。</p>
+        <label class="remember-choice"><input id="remember-launch" type="checkbox"> <span>次回から表示しない</span></label>
       </section>
 
       <section id="loading-panel" class="loading-card" aria-live="polite">
-        <div class="eyebrow">AMONG US</div>
-        <div class="loading-heading"><div class="loader-orbit" aria-hidden="true"></div><div><h2>ゲーム起動中</h2><div id="unity-loading-status" role="status">起動準備中</div></div></div>
-        <div class="progress-meta"><span id="load-stage">DOWNLOAD SEQUENCE</span><span id="load-percent">0%</span></div>
+        <div class="loading-heading"><h2>ゲーム起動中</h2></div>
         <div id="unity-progress-bar-empty"><div id="unity-progress-bar-full"></div></div>
-        
+        <div id="unity-loading-status" role="status">起動中</div>
         <div id="load-error" role="alert" hidden></div>
-        <button id="return-start" type="button" hidden>起動方法の選択に戻る</button>
+        <button id="return-start" type="button" hidden>戻る</button>
       </section>
     </div>
-
-    <footer class="bottomline"><span>INNERSLOTH // CREW NETWORK</span><span class="right">STAY ALERT <span class="accent">●</span> TRUST NO ONE</span></footer>
   </main>
   <input id="local-directory-input" type="file" webkitdirectory directory multiple aria-label="ゲームファイルのフォルダを選択">
 
@@ -324,26 +368,10 @@
       var warningBanner = document.querySelector("#unity-warning");
 
       function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.textContent = String(msg);
-        div.style.cssText = type === 'error'
-          ? 'background:#9f2031;color:#fff;padding:12px 16px;border:1px solid #ff7784;border-radius:6px;box-shadow:0 8px 24px #0008;'
-          : 'background:#6c5317;color:#fff;padding:12px 16px;border-radius:6px;';
-        warningBanner.appendChild(div);
-        if (type !== 'error') {
-          setTimeout(function() {
-            if (div.parentNode === warningBanner) warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        } else {
-          loadError.hidden = false;
-          loadError.textContent = String(msg);
-          returnStartButton.hidden = false;
-        }
-        updateBannerVisibility();
+        if (type !== "error") return;
+        loadError.hidden = false;
+        loadError.textContent = String(msg);
+        returnStartButton.hidden = false;
       }
 
       var buildUrl = "Build";
@@ -474,9 +502,9 @@
       function showLoadingProgress(progress, message) {
         var safeProgress = Math.max(0, Math.min(1, Number(progress) || 0));
         progressBarFull.style.width = Math.round(safeProgress * 100) + "%";
-        loadPercent.textContent = Math.round(safeProgress * 100) + "%";
-        loadingStatus.textContent = message;
-        loadStage.textContent = safeProgress < 0.85 ? (localMode ? "LOCAL FILE SEQUENCE" : "DOWNLOAD SEQUENCE") : "STARTING GAME ENGINE";
+        if (loadPercent) loadPercent.textContent = Math.round(safeProgress * 100) + "%";
+        if (loadingStatus) loadingStatus.textContent = message;
+        if (loadStage) loadStage.textContent = safeProgress < 0.85 ? (localMode ? "LOCAL FILE SEQUENCE" : "DOWNLOAD SEQUENCE") : "STARTING GAME ENGINE";
       }
 
       function normalizeLocalPath(path) {
@@ -527,16 +555,119 @@
         var requiredPaths = getRequiredLocalPaths();
         var missing = [];
         if (localFiles) {
-          requiredPaths.forEach(function(path) { if (!localFiles.has(normalizeLocalPath(path))) missing.push(path); });
+          requiredPaths.forEach(function(path) {
+            if (!localFiles.has(normalizeLocalPath(path))) missing.push(path);
+          });
         } else {
           for (var i = 0; i < requiredPaths.length; i++) {
             try { await getLocalFile(requiredPaths[i]); }
             catch (e) { missing.push(requiredPaths[i]); }
           }
         }
-        if (missing.length) {
-          var preview = missing.slice(0, 5).join("、");
-          throw new Error("選択したフォルダに必要なゲームファイルが " + missing.length + " 個見つかりません。\n例: " + preview + (missing.length > 5 ? " ほか" : ""));
+        if (missing.length) await downloadMissingLocalFiles(missing);
+      }
+
+      function openPreferenceDb() {
+        return new Promise(function(resolve, reject) {
+          if (!window.indexedDB) return reject(new Error("フォルダ設定を保存できません。"));
+          var request = indexedDB.open("among-us-launcher-settings", 1);
+          request.onupgradeneeded = function() {
+            if (!request.result.objectStoreNames.contains("settings")) request.result.createObjectStore("settings");
+          };
+          request.onsuccess = function() { resolve(request.result); };
+          request.onerror = function() { reject(request.error || new Error("設定を開けません。")); };
+        });
+      }
+
+      async function saveDirectoryHandle(handle) {
+        var db = await openPreferenceDb();
+        return new Promise(function(resolve, reject) {
+          var tx = db.transaction("settings", "readwrite");
+          tx.objectStore("settings").put(handle, "directoryHandle");
+          tx.oncomplete = function() { db.close(); resolve(); };
+          tx.onerror = function() { db.close(); reject(tx.error || new Error("フォルダを保存できません。")); };
+          tx.onabort = function() { db.close(); reject(tx.error || new Error("フォルダを保存できません。")); };
+        });
+      }
+
+      async function loadDirectoryHandle() {
+        var db = await openPreferenceDb();
+        return new Promise(function(resolve, reject) {
+          var tx = db.transaction("settings", "readonly");
+          var request = tx.objectStore("settings").get("directoryHandle");
+          request.onsuccess = function() { var handle = request.result || null; db.close(); resolve(handle); };
+          request.onerror = function() { db.close(); reject(request.error || new Error("フォルダ設定を読み込めません。")); };
+        });
+      }
+
+      async function saveStartupChoice(mode) {
+        var key = "amongUsLaunchMode";
+        if (!document.querySelector("#remember-launch").checked) {
+          try { localStorage.removeItem(key); } catch (e) {}
+          return;
+        }
+        if (mode === "network") {
+          try { localStorage.setItem(key, "network"); } catch (e) {}
+          return;
+        }
+        if (localRootHandle) {
+          try {
+            await saveDirectoryHandle(localRootHandle);
+            localStorage.setItem(key, "local");
+            return;
+          } catch (e) {
+            try { localStorage.removeItem(key); } catch (_) {}
+            window.alert("このフォルダを次回用に保存できませんでした。");
+            return;
+          }
+        }
+        try { localStorage.removeItem(key); } catch (e) {}
+        window.alert("このブラウザではローカルフォルダを次回に記憶できません。");
+      }
+
+      async function writeLocalFile(path, blob) {
+        var pieces = normalizeLocalPath(path).split("/").filter(Boolean);
+        var directory = localRootHandle;
+        for (var i = 0; i < pieces.length - 1; i++) {
+          directory = await directory.getDirectoryHandle(pieces[i], { create: true });
+        }
+        var fileHandle = await directory.getFileHandle(pieces[pieces.length - 1], { create: true });
+        var writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+      }
+
+      async function downloadMissingLocalFiles(paths) {
+        var failures = [];
+        var nextIndex = 0;
+        var completed = 0;
+        var workerCount = Math.min(3, paths.length);
+        async function worker() {
+          while (true) {
+            var index = nextIndex++;
+            if (index >= paths.length) return;
+            var path = paths[index];
+            try {
+              var response = await nativeFetch(new URL(path, location.href).href, { cache: "no-cache" });
+              if (!response.ok) throw new Error("HTTP " + response.status);
+              var blob = await response.blob();
+              if (localRootHandle) {
+                await writeLocalFile(path, blob);
+              } else if (localFiles) {
+                localFiles.set(normalizeLocalPath(path), blob);
+              } else {
+                throw new Error("保存先フォルダがありません。");
+              }
+              completed++;
+              showLoadingProgress(0.02 + 0.28 * completed / paths.length, "ゲーム起動中");
+            } catch (error) {
+              failures.push(path + " (" + (error && error.message ? error.message : String(error)) + ")");
+            }
+          }
+        }
+        await Promise.all(Array.from({ length: workerCount }, worker));
+        if (failures.length) {
+          throw new Error("不足ファイルを取得できませんでした:\n" + failures.slice(0, 8).join("\n") + (failures.length > 8 ? "\nほか " + (failures.length - 8) + " 件" : ""));
         }
       }
 
@@ -682,8 +813,8 @@
         warningBanner.innerHTML = "";
         warningBanner.style.display = "none";
         progressBarFull.style.width = "0%";
-        loadPercent.textContent = "0%";
-        connectionChip.textContent = localMode ? "LOCAL CACHE SELECTED" : "NETWORK LOAD SELECTED";
+        if (loadPercent) loadPercent.textContent = "0%";
+        if (connectionChip) connectionChip.textContent = localMode ? "LOCAL CACHE SELECTED" : "NETWORK LOAD SELECTED";
         showLoadingProgress(0, localMode ? "ローカルフォルダからゲームデータを読み込んでいます…" : "配信元からゲームデータを読み込んでいます…");
 
         try {
@@ -747,35 +878,52 @@
         }
       }
 
+      function showProgressPanel() {
+        launchOptions.style.display = "none";
+        loadingBar.style.display = "block";
+        loadError.hidden = true;
+        returnStartButton.hidden = true;
+        progressBarFull.style.width = "0%";
+        showLoadingProgress(0, "ゲーム起動中");
+      }
+
+      function showSetupError(error) {
+        showProgressPanel();
+        loadError.hidden = false;
+        loadError.textContent = error && error.message ? error.message : String(error);
+        returnStartButton.hidden = false;
+      }
+
       async function chooseLocalFolder() {
         var localButton = document.querySelector("#choose-local");
         localButton.disabled = true;
         try {
           if (typeof window.showDirectoryPicker === "function") {
-            localRootHandle = await window.showDirectoryPicker({ mode: "read" });
+            localRootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
             localFiles = null;
           } else if ("webkitdirectory" in localDirectoryInput) {
             localDirectoryInput.value = "";
             localDirectoryInput.click();
             return;
           } else {
-            throw new Error("このブラウザではフォルダを直接選択できません。『通常起動』を利用してください。");
+            throw new Error("このブラウザではフォルダを選択できません。");
           }
+          showProgressPanel();
           await validateLocalFolder();
+          await saveStartupChoice("local");
           await beginLoading(true);
         } catch (error) {
-          if (error && error.name === "AbortError") {
-            // Folder picker canceled: keep the choice screen open.
-          } else {
-            window.alert(error && error.message ? error.message : String(error));
-          }
+          if (!(error && error.name === "AbortError")) showSetupError(error);
         } finally {
           localButton.disabled = false;
         }
       }
 
       document.querySelector("#choose-local").addEventListener("click", chooseLocalFolder);
-      document.querySelector("#choose-network").addEventListener("click", function() { beginLoading(false); });
+      document.querySelector("#choose-network").addEventListener("click", async function() {
+        await saveStartupChoice("network");
+        await beginLoading(false);
+      });
       localDirectoryInput.addEventListener("change", async function() {
         var selectedFiles = Array.from(localDirectoryInput.files || []);
         if (!selectedFiles.length) return;
@@ -788,17 +936,52 @@
           localFiles.set(normalizeLocalPath(relative), file);
         });
         try {
+          showProgressPanel();
           await validateLocalFolder();
+          await saveStartupChoice("local");
           await beginLoading(true);
         } catch (error) {
-          localFiles = null;
-          window.alert(error && error.message ? error.message : String(error));
+          showSetupError(error);
         }
       });
+
+      async function autoLaunchRememberedChoice() {
+        var mode = null;
+        try { mode = localStorage.getItem("amongUsLaunchMode"); } catch (e) {}
+        if (mode === "network") {
+          await beginLoading(false);
+          return;
+        }
+        if (mode !== "local") return;
+        try {
+          var handle = await loadDirectoryHandle();
+          if (!handle) return;
+          var permission = await handle.queryPermission({ mode: "readwrite" });
+          if (permission !== "granted") return;
+          localRootHandle = handle;
+          localFiles = null;
+          showProgressPanel();
+          try {
+            await validateLocalFolder();
+            await beginLoading(true);
+          } catch (error) {
+            launchOptions.style.display = "none";
+            loadingBar.style.display = "block";
+            loadError.hidden = false;
+            loadError.textContent = error && error.message ? error.message : String(error);
+            returnStartButton.hidden = false;
+          }
+        } catch (e) {
+          // If the saved folder is unavailable, leave the selection screen visible.
+        }
+      }
+
       returnStartButton.addEventListener("click", function() {
-        // Reload to discard partial Unity state and let the user select a mode again.
+        try { localStorage.removeItem("amongUsLaunchMode"); } catch (e) {}
         location.reload();
       });
+
+      autoLaunchRememberedChoice();
 
     
   </script>
